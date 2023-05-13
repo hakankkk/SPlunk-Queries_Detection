@@ -1,0 +1,11 @@
+index=windows sourcetype="WinEventLog:Security" EventCode=4657 Registry_Key="HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\*"
+| eval reg_key=mvindex(split(Registry_Key,"\\\\"),6)
+| eval username=mvindex(split(Account_Name,"\\"),2)
+| stats count by _time, username, reg_key
+| where count > 1 AND username!="Administrator"
+```This query searches for modifications to the Windows Registry Run Keys, which are commonly used by malware for persistence. 
+It looks for events in the Windows Security Event Log with Event Code 4657 and filters for modifications to the Run Keys in the Registry. 
+It then counts the number of modifications to each key by each username and filters for modifications that occur more than once, 
+indicating potential malicious activity. 
+The query also excludes events where the username is "Administrator" from the results, 
+as this is a common account used by system administrators and may generate false positives.```
