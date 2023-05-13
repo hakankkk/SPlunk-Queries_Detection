@@ -1,6 +1,5 @@
-index=windows sourcetype="WinEventLog:Security" EventCode=4698 OR EventCode=4699 OR EventCode=4700 OR EventCode=4702
-| eval task_name=if(EventCode=4698 OR EventCode=4699, mvindex(split(Object_Name,"\\\\"),2), mvindex(split(Object_Name,"\\\\"),5))
-| eval task_user=if(EventCode=4698 OR EventCode=4699, mvindex(split(Subject_User_Name,"\\"),2), mvindex(split(Subject_User_Name,"\\"),3))
-| eval event_type=if(EventCode=4698, "Created", if(EventCode=4699, "Deleted", if(EventCode=4700, "Enabled", if(EventCode=4702, "Disabled", "Unknown"))))
-| stats count by _time, task_name, task_user, event_type
-| where count > 1 AND NOT task_user="SYSTEM" AND NOT task_user="NETWORK SERVICE" AND NOT task_user="LOCAL SERVICE"
+index=windows sourcetype="WinEventLog:System" EventCode=7045
+| eval service_name=mvindex(split(Service_Name,"/"),-1)
+| eval event_type=if(Image_Path LIKE "%System32\\svchost.exe -k %", "System Service", "Non-System Service")
+| stats count by _time, service_name, event_type, Image_Path
+| where count > 1 AND NOT service_name="NtmsSvc" AND NOT service_name="SENS" AND NOT service_name="SysmonDrv" AND NOT service_name="wuauserv"
