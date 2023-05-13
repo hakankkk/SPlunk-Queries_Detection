@@ -1,0 +1,14 @@
+index=linux sourcetype=ssh:log "Failed password" OR "Invalid user" OR "Authentication failure" 
+| stats count(eval(match(_raw, "Failed password") OR match(_raw, "Invalid user") OR match(_raw, "Authentication failure"))) AS failed_attempts by host, user 
+| search failed_attempts >= 5 
+| append [ search index=linux sourcetype=ssh:log "Accepted password" 
+| eval time=strptime(_time,"%Y-%m-%d %H:%M:%S") 
+| eval user=lower(user) 
+| stats count(eval(match(_raw, "Accepted password"))) AS successful_login by host, user 
+| search successful_login >= 1 ] 
+| eval time=strptime(_time,"%Y-%m-%d %H:%M:%S") 
+| streamstats count by host, user 
+| search count=1 
+| eval time_difference=time-min(eval(if(match(action, "useradd"), time, null()))) 
+| where time_difference <= 5m 
+| table host, user, time, action 
