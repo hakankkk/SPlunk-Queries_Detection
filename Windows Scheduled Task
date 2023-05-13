@@ -1,0 +1,6 @@
+index=windows sourcetype="WinEventLog:Security" EventCode=4698 OR EventCode=4699 OR EventCode=4700 OR EventCode=4702
+| eval task_name=if(EventCode=4698 OR EventCode=4699, mvindex(split(Object_Name,"\\\\"),2), mvindex(split(Object_Name,"\\\\"),5))
+| eval task_user=if(EventCode=4698 OR EventCode=4699, mvindex(split(Subject_User_Name,"\\"),2), mvindex(split(Subject_User_Name,"\\"),3))
+| eval event_type=if(EventCode=4698, "Created", if(EventCode=4699, "Deleted", if(EventCode=4700, "Enabled", if(EventCode=4702, "Disabled", "Unknown"))))
+| stats count by _time, task_name, task_user, event_type
+| where count > 1 AND NOT task_user="SYSTEM" AND NOT task_user="NETWORK SERVICE" AND NOT task_user="LOCAL SERVICE"
