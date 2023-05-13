@@ -1,0 +1,7 @@
+(index=windows sourcetype="WinEventLog:Application" (EventCode=1020 OR EventCode=1022))
+| eval app_name=split(Application,"\\")[0]
+| eval extension_name=split(Application,"\\")[-1]
+| search "chrome" OR "firefox" OR "edge"
+| stats count by _time, app_name, extension_name
+| where count > 1 AND NOT extension_name="Microsoft"
+```If you allow other vendor, you can add/change Microsoft.```
