@@ -1,0 +1,19 @@
+(index=firewall_logs sourcetype=access_combined) (src_ip=* dest_ip=* action=syn)
+| stats count by src_ip, dest_ip
+| where count=1 
+| join type=inner src_ip [ search (index=auth_logs sourcetype=linux_secure) "Accepted" OR "Failed" 
+    | eval user=if(action=="Failed", "*", user) 
+    | fields _time, user, src_ip 
+    | stats latest(_time) as latest_time by src_ip, user 
+    | where user!="*"
+    | rename latest_time as time] 
+| join type=left src_ip [ search (index=web_logs sourcetype=access_combined) status=404 or 403 or 400 
+    | eval uri_domain=mvindex(split(uri_host, "."), -2) + "." + mvindex(split(uri_host, "."), -1) 
+    | eval uri=uri_domain + uri_path 
+    | fields _time, uri, src_ip 
+    | stats latest(_time) as latest_time by src_ip, uri 
+    | where uri!=""] 
+| stats count(uri) as distinct_uri_count by src_ip 
+| where distinct_uri_count>5 
+| table src_ip, latest_time, distinct_uri_count 
+| lookup host_lookup.csv ip as src_ip OUTPUT hostname, country, city, latitude, longitude
