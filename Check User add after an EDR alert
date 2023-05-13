@@ -1,0 +1,10 @@
+index=*'''you should write your own indexes''' sourcetype="WinEventLog:Security" EventCode=4720 OR EventCode=4722 OR EventCode=4723 OR EventCode=4724 OR EventCode=4725 OR EventCode=4726 OR EventCode=4738 OR EventCode=4741 OR EventCode=4756 OR EventCode=4781 
+| rex field=Message "Account Name:\s+(?<username>\w+)" 
+| rex field=Message "Security ID:\s+(?<sid>\w+)" 
+| rex field=Message "Group Name:\s+(?<group>\w+)" 
+| table _time, username, group, ComputerName, Source_Network_Address
+| rename ComputerName as hostname, Source_Network_Address as ip
+| stats count by hostname, ip 
+| lookup <your_edr_index> host as hostname 
+| where _time > now() - 24h 
+| table hostname, ip, _time, alert_name
