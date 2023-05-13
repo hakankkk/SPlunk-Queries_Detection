@@ -1,0 +1,10 @@
+index=windows sourcetype="WinEventLog:Security" EventCode=4625
+| stats count(eval(EventCode=4625 AND Authentication_Failure_Code!=0)) as failed_attempts by src_user
+| search failed_attempts>=5
+| join type=inner max=0 src_user
+    [ search index=windows sourcetype="WinEventLog:Security" EventCode=4624
+      | table ComputerName, src_user, EventCode
+    ]
+| eval new_user=if(EventCode==4688 AND Process_Command_Line="*net user* /add*", 1, 0)
+| search new_user=1
+```If we detect 5 RDP trials and then success, create a user. This can show us a successful brute force and persistence attempt.```
