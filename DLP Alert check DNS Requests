@@ -1,0 +1,8 @@
+index=dlp_alerts sourcetype="dlp_alert" 
+| stats latest(_time) as last_alert by dest_host 
+| search last_alert>=relative_time(now(), "-24h") 
+| table dest_host 
+| lookup dnslookup clientip as dest_host OUTPUT clientip, query 
+| stats count(query) as dns_count, values(query) as dns_requests by clientip 
+| sort -dns_count 
+| head 100
