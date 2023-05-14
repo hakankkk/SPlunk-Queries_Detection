@@ -1,0 +1,26 @@
+index=edr_logs OR index=dlp_logs
+| eval host=coalesce(host, dest_host) 
+| stats count(eval(index="edr_logs")) as edr_count, count(eval(index="dlp_logs")) as dlp_count by host 
+| where edr_count>0 AND dlp_count>0
+| join type=inner host [search index=* sourcetype="dns" host=* | fields host | dedup host | rename host as "dns_host"]
+| join type=inner host [search index=* sourcetype="processlist" host=* | fields host | dedup host | rename host as "processlist_host"]
+| table host, edr_count, dlp_count, dns_host, processlist_host 
+| join type=inner host [search index=* sourcetype="edr_alert" OR sourcetype="dlp_alert" 
+                        | eval host=coalesce(host, dest_host) 
+                        | fields host 
+                        | dedup host 
+                        | rename host as "alert_host"]
+| where host=alert_host
+| join type=left host [search index=* sourcetype="dns" host=* 
+                       | rename _time as dns_time 
+                       | fields host, query 
+                       | sort -dns_time 
+                       | dedup host 
+                       | rename host as "dns_host"] 
+| join type=left host [search index=* sourcetype="processlist" host=* 
+                       | rename _time as process_time 
+                       | fields host, process_name, process_path, parent_process_name, parent_process_path 
+                       | sort -process_time 
+                       | dedup host 
+                       | rename host as "processlist_host"]
+| head 100 
