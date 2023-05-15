@@ -1,0 +1,3 @@
+index=<your_index_name> sourcetype=<your_sourcetype_name> (iptable OR iptables) 
+| rex field=_raw "(?<action>ADDED|REMOVED) rule" 
+| stats latest(_time) as time by user, action, host
