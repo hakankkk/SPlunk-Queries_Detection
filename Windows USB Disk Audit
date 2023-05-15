@@ -1,0 +1,7 @@
+index=windows sourcetype="WinEventLog:Security" EventCode=4656 (Object_Name="*\\usbstor\\*" OR Object_Name="*\\USBSTOR\\*") Access_Mask=32 NOT Account_Name="ANONYMOUS LOGON" NOT Account_Name="*$"
+| dedup Account_Name, Object_Name
+| eval Device_Name = mvindex(split(Object_Name, "\\"),-1)
+| search Device_Name != "DevicesAndPrinters" AND Device_Name != "Phone" AND Device_Name != "Modem"
+| stats count by Account_Name, Device_Name
+| where count>1
+| eval Alert="A USB device was plugged into " . Device_Name . " by user " . Account_Name
