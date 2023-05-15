@@ -1,0 +1,11 @@
+index=linux_logs sourcetype=linux_secure ("Accepted publickey" OR "Failed publickey") 
+| rex field=_raw "user\s+(?<user>\S+)\s+" 
+| rex field=_raw "from\s+(?<src_ip>\S+)\s+" 
+| eval ssh_key = coalesce(rex(field=_raw, "(ssh-rsa|ssh-ed25519) (?<ssh_key>\S+)"), "unknown") 
+| stats latest(_time) as time by user, src_ip, ssh_key 
+| where ssh_key!="unknown"
+| sort -time 
+| head 10
+
+index=linux_logs sourcetype="syslog" (file="/home/*/ssh/*key" OR file="/root/.ssh/*key") (action=read OR action=write) 
+| regex _raw=".* (user=\S+).* (key file=\S+).* (action=(read|write))"
