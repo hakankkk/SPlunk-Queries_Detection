@@ -1,0 +1,4 @@
+(index=* sourcetype="linux_secure" OR sourcetype="auditd") (action="usb_insert" OR action="add") 
+| eval date_time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| table host, date_time, user, action, vendor, product, serial, model 
+| union [search index=* sourcetype="syslog" OR sourcetype="messages" "usb" "inserted" OR "attached" | head 10 | table _raw]
