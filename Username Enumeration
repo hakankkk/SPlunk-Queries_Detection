@@ -1,0 +1,9 @@
+index="your index name here" sourcetype=windows EventCode=4625 OR EventCode=4624 
+ | bin _time span=5m as minute 
+ | rex "Security ID:\s*\w*\s*\w*\s*Account Name:\s*(?<username>.*)\s*Account Domain:" 
+ | stats count(Keywords) as Attempts,
+ count(eval(match(Keywords,"Audit Failure"))) as Failed,
+ count(eval(match(Keywords,"Audit Success"))) as Success by minute username
+ | where Failed>=4
+ | stats dc(username) as Total by minute 
+ | where Total>5
