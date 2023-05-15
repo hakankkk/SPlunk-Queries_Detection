@@ -1,0 +1,5 @@
+index=linux_logs (source="/var/log/*" OR source="/var/log/syslog" OR source="/var/log/messages") 
+("/etc/inittab" OR "/etc/init.d" OR "/etc/rc.d" OR "/etc/init.conf" OR "/etc/init") 
+| sort -_time 
+| dedup host, source 
+| head 10
