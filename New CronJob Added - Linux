@@ -1,0 +1,5 @@
+(index=linux sourcetype="syslog" "(/etc/cron.d/|/etc/cron.daily/|/etc/cron.hourly/|/etc/cron.monthly/|/etc/cron.weekly/|/var/spool/cron/)" 
+(" /etc/cron*" OR " /var/spool/cron/*") ("*new crontab file*" OR "*new entry added*" OR "*crontab file removed*" OR "*cron.*[ED]$")
+| rex field=_raw "USER=(?<user>[^\s]+).*CMD=(?<cmd>[^\n]+)" 
+| eval cron_job=if(match(_raw, ".*new crontab file.*"), "new crontab file", if(match(_raw, ".*new entry added.*"), "new entry added", if(match(_raw, ".*crontab file removed.*"), "crontab file removed", if(match(_raw, ".*cron.+\s+e(d|dited)\s*$"), "cron job edited", "unknown"))))
+| table user, _time, cron_job, cmd
