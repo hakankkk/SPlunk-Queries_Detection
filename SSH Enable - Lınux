@@ -1,0 +1,7 @@
+index=linux sourcetype=syslog (sudo vim /etc/ssh/sshd_config OR sudo nano /etc/ssh/sshd_config) 
+| rex field=_raw "sudo\s+\w+\s+(?<user>\w+)\s+(vi|vim|nano)" 
+| rex field=_raw "\d{4}\s+(?<month>\w{3})\s+(?<day>\d{1,2})\s+(?<time>\S+)" 
+| eval datetime=strptime(strftime(strftime(now(), "%Y") . " ". month . " " . day . " " . time), "%Y %b %d %H:%M:%S") 
+| stats max(datetime) as latest by user 
+| where latest > relative_time(now(), "-24h") 
+| table user, latest
