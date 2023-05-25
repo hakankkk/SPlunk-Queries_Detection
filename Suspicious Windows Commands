@@ -1,0 +1,5 @@
+index=<your_index> (whoami OR netsh OR nmap OR "net group" OR vmic OR dnscmd OR systeminfo OR tasklist)
+| transaction startswith=(_time) maxpause=3m keepevicted=true
+| search mvcount(keyword) > 1
+| table _time, source, sourcetype, host, user, keyword
+''' you can create a lookup table for these words to follow and implement more easly'''
