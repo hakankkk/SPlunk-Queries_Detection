@@ -1,0 +1,8 @@
+index=<your_index> sourcetype=<your_sourcetype> host=<your_domain_controller>
+| eval ticket_lifetime = _time - _indextime
+| search event_id=4769 OR event_id=4771
+| where ticket_lifetime > 0 AND ticket_lifetime < <max_valid_lifetime>
+| search (user_sid="*500" OR (user_sid!="*500" AND (account_name="Administrator" OR account_name="admin")))
+| stats count by user, host, ticket_lifetime
+| where count > <threshold_value>
+| table user, host, ticket_lifetime, count
