@@ -1,4 +1,4 @@
-index=<your_index> (whoami OR netsh OR nmap OR "net group" OR vmic OR dnscmd OR systeminfo OR tasklist)
+index=<your_index> (whoami OR netsh OR nmap OR "net group" OR vmic OR dnscmd OR systeminfo OR tasklist OR qprocess OR ipconfig OR dir OR 'net share' OR reg OR wusa OR rundll32 OR csvde OR nbtstat)
 | transaction startswith=(_time) maxpause=3m keepevicted=true
 | search mvcount(keyword) > 1
 | table _time, source, sourcetype, host, user, keyword
