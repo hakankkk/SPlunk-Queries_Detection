@@ -1,0 +1,4 @@
+index=<your_index> sourcetype=<your_sourcetype> host=<your_linux_host>
+| search "visudo:.*\(username"
+| regex field=_raw "visudo:.*\(username\b"
+| table _time, host, user
