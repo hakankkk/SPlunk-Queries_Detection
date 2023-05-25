@@ -1,0 +1,8 @@
+index=<your_index> sourcetype=<your_sourcetype> host=<your_linux_host>
+| dedup pid
+| stats values(parent) as parent by pid
+| search NOT [ search index=<your_index> sourcetype=<your_sourcetype> host=<your_linux_host>
+            | dedup pid
+            | stats values(ppid) as ppid by pid
+            | table ppid ]
+| table pid, parent
