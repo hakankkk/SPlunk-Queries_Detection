@@ -1,0 +1,4 @@
+index=auditd action="write" OR action="rename"
+| rex field=filename "\.(?<ext>\w+)$"
+| search ext IN ("locky", "crypt", "cryp1", "wannacrypt", "zzzzz", "encrypted", "cerber", "dharma", "arena", "ooo", "xrtn", "vhd")
+| table _time, hostname, proc_name, filename
